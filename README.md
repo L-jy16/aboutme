@@ -138,7 +138,7 @@ index.html 파일을 Live Server로 실행합니다.
 
 GitHub Pages
 
-배포 URL:
+배포 URL: https://l-jy16.github.io/aboutme/
 
 ## Screenshots
 
