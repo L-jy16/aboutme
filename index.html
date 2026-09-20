@@ -1,0 +1,227 @@
+<!-- @format -->
+
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta
+      name="description"
+      content="프론트엔드 개발자 이지영의 포트폴리오입니다."
+    />
+
+    <title>이지영 | Frontend Developer</title>
+
+    <link rel="stylesheet" href="./css/style.css" />
+
+    <script src="./js/main.js" defer></script>
+  </head>
+
+  <body>
+    <header class="header" id="header">
+      <nav class="nav">
+        <a href="#hero" class="logo"> JIYOUNG.DEV </a>
+
+        <button
+          class="menu-toggle"
+          type="button"
+          aria-label="메뉴 열기"
+          aria-expanded="false"
+        >
+          ☰
+        </button>
+
+        <ul class="nav-menu">
+          <li>
+            <a href="#about">About</a>
+          </li>
+
+          <li>
+            <a href="#skills">Skills</a>
+          </li>
+
+          <li>
+            <a href="#projects">Projects</a>
+          </li>
+
+          <li>
+            <a href="#contact">Contact</a>
+          </li>
+        </ul>
+
+        <button class="theme-toggle" type="button" aria-label="다크 모드 변경">
+          Dark
+        </button>
+      </nav>
+    </header>
+
+    <main>
+      <section id="hero" class="hero">
+        <div class="hero-content">
+          <p class="hero-subtitle">FRONTEND DEVELOPER</p>
+
+          <h1>
+            안녕하세요.<br />
+            프론트엔드 개발자
+            <strong>이지영</strong>입니다.
+          </h1>
+
+          <p class="hero-description">
+            사용자에게 편리하고 직관적인 웹 경험을 제공하기 위해 고민하고
+            개발합니다.
+          </p>
+
+          <div class="hero-buttons">
+            <a href="#projects" class="button primary-button">
+              프로젝트 보기
+            </a>
+
+            <a href="#contact" class="button secondary-button"> 연락하기 </a>
+          </div>
+        </div>
+      </section>
+
+      <section id="about" class="section reveal">
+        <h2 class="section-title">About Me</h2>
+
+        <div class="about-container">
+          <div class="profile-image">
+            <img
+              src="./images/me.png"
+              alt="프론트엔드 개발자 이지영 프로필 사진"
+            />
+          </div>
+
+          <div class="about-content">
+            <h3>사용자 경험을 생각하는 개발자</h3>
+
+            <p>
+              React와 JavaScript를 중심으로 웹 프론트엔드 개발을 경험했습니다.
+            </p>
+
+            <p>
+              웹 서비스의 화면 구현뿐만 아니라 API 연동, 사용자 상태에 따른 UI
+              변경, 반응형 웹 구현 등에 관심을 가지고 있습니다.
+            </p>
+
+            <p>
+              새로운 기술을 배우고 직접 구현하면서 문제를 해결할 수 있는
+              개발자를 목표로 하고 있습니다.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section id="skills" class="section reveal">
+        <h2 class="section-title">Skills</h2>
+
+        <p class="section-description">
+          현재 사용하고 있거나 학습한 기술입니다.
+        </p>
+
+        <ul class="skills-list">
+          <li>HTML</li>
+
+          <li>CSS</li>
+
+          <li>JavaScript</li>
+
+          <li>React</li>
+
+          <li>Git</li>
+
+          <li>GitHub</li>
+        </ul>
+      </section>
+
+      <section id="projects" class="section reveal">
+        <h2 class="section-title">Projects</h2>
+
+        <p class="section-description">
+          GitHub API를 이용하여 저장소 정보를 실시간으로 불러옵니다.
+        </p>
+
+        <div id="project-status" class="project-status" aria-live="polite">
+          프로젝트를 불러오는 중...
+        </div>
+
+        <div id="project-list" class="project-grid"></div>
+      </section>
+
+      <section id="contact" class="section reveal">
+        <h2 class="section-title">Contact</h2>
+
+        <p class="section-description">아래 폼을 작성해 주세요.</p>
+
+        <form id="contact-form" class="contact-form" novalidate>
+          <div class="form-group">
+            <label for="name"> 이름 </label>
+
+            <input
+              id="name"
+              name="name"
+              type="text"
+              placeholder="이름을 입력해주세요."
+            />
+
+            <p id="name-error" class="error-message"></p>
+          </div>
+
+          <div class="form-group">
+            <label for="email"> 이메일 </label>
+
+            <input
+              id="email"
+              name="email"
+              type="email"
+              placeholder="example@email.com"
+            />
+
+            <p id="email-error" class="error-message"></p>
+          </div>
+
+          <div class="form-group">
+            <label for="message"> 메시지 </label>
+
+            <textarea
+              id="message"
+              name="message"
+              rows="6"
+              placeholder="메시지를 입력해주세요."
+            ></textarea>
+
+            <p id="message-error" class="error-message"></p>
+          </div>
+
+          <button type="submit" class="button primary-button submit-button">
+            보내기
+          </button>
+
+          <p id="form-success" class="success-message" aria-live="polite"></p>
+        </form>
+      </section>
+    </main>
+
+    <button id="scroll-top" type="button" aria-label="페이지 맨 위로 이동">
+      ↑
+    </button>
+
+    <footer class="footer">
+      <p>© 2026 Jiyoung Lee</p>
+
+      <div class="footer-links">
+        <a
+          href="https://github.com/L-jy16"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          GitHub
+        </a>
+
+        <a href="#hero"> Top </a>
+      </div>
+    </footer>
+  </body>
+</html>
