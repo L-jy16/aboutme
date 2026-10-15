@@ -1,4 +1,6 @@
-# Personal Portfolio Website
+<!-- @format -->
+
+# About Me
 
 순수 HTML, CSS, JavaScript로 만든 이지영의 반응형 포트폴리오입니다. 사용자 이벤트를 받아 상태를 변경하고 DOM을 업데이트하는 흐름과 비동기 API 처리를 직접 구현했습니다. 외부 프레임워크나 UI 라이브러리는 사용하지 않았습니다.
 
@@ -22,28 +24,28 @@ HTML은 콘텐츠의 구조, CSS는 배치와 표현, JavaScript는 동작을 �
 
 ## 2. 개발 환경과 실행 조건
 
-| 구분 | 내용 |
-| --- | --- |
-| 언어 | HTML5, CSS3, JavaScript ES6+ |
-| 개발 도구 | VS Code, Live Server |
-| 실행 환경 | 최신 Chrome을 기준으로 확인할 웹 브라우저 |
-| 외부 통신 | GitHub REST API |
-| 브라우저 저장 | localStorage의 theme 키 |
-| 배포 | GitHub Pages |
-| 외부 라이브러리 | 사용하지 않음 |
-| 패키지 설치·빌드 | 별도 과정 없음 |
+| 구분             | 내용                                      |
+| ---------------- | ----------------------------------------- |
+| 언어             | HTML5, CSS3, JavaScript ES6+              |
+| 개발 도구        | VS Code, Live Server                      |
+| 실행 환경        | 최신 Chrome을 기준으로 확인할 웹 브라우저 |
+| 외부 통신        | GitHub REST API                           |
+| 브라우저 저장    | localStorage의 theme 키                   |
+| 배포             | GitHub Pages                              |
+| 외부 라이브러리  | 사용하지 않음                             |
+| 패키지 설치·빌드 | 별도 과정 없음                            |
 
 프로젝트는 정적 웹사이트이므로 별도 서버 프로그램이나 데이터베이스가 필요하지 않습니다. GitHub 저장소 조회는 외부 API 통신이므로 인터넷 연결이 필요합니다. Contact는 입력 검증까지 구현했으며 입력 내용을 서버나 이메일로 보내지 않습니다.
 
 ## 3. 파일별 책임과 실행 순서
 
-| 파일·폴더 | 책임 | 주요 내용 |
-| --- | --- | --- |
-| index.html | 문서 구조와 콘텐츠 | 시맨틱 영역, 앵커 링크, 프로필, 문의 폼, 상태 표시 영역 |
-| css/style.css | 화면 표현 | CSS 변수, 테마, Flex/Grid, 반응형, hover·transition |
-| js/main.js | 이벤트와 화면 갱신 | 메뉴·테마·스크롤, API 요청·카드 생성, 폼 검증 |
-| images/ | 정적 이미지 | 프로필과 README 화면 캡처 |
-| README.md | 설계·실행·평가 안내 | 구현 이유, 동작 흐름, 확인 방법과 한계 |
+| 파일·폴더     | 책임                | 주요 내용                                               |
+| ------------- | ------------------- | ------------------------------------------------------- |
+| index.html    | 문서 구조와 콘텐츠  | 시맨틱 영역, 앵커 링크, 프로필, 문의 폼, 상태 표시 영역 |
+| css/style.css | 화면 표현           | CSS 변수, 테마, Flex/Grid, 반응형, hover·transition     |
+| js/main.js    | 이벤트와 화면 갱신  | 메뉴·테마·스크롤, API 요청·카드 생성, 폼 검증           |
+| images/       | 정적 이미지         | 프로필과 README 화면 캡처                               |
+| README.md     | 설계·실행·평가 안내 | 구현 이유, 동작 흐름, 확인 방법과 한계                  |
 
 페이지가 열리면 다음 순서로 동작합니다.
 
@@ -70,7 +72,6 @@ DOM(Document Object Model)은 HTML 문서를 JavaScript에서 접근하고 변�
 
 `querySelector()`는 CSS 선택자와 일치하는 첫 번째 요소를 가져오고, `querySelectorAll()`은 일치하는 여러 요소를 가져옵니다. 한 개의 햄버거 버튼은 전자로 선택하고, 여러 내비게이션 링크나 애니메이션 대상 섹션은 후자로 선택해 순회합니다.
 
-
 ```javascript
 const menuButton = document.querySelector(".menu-toggle");
 const navMenu = document.querySelector(".nav-menu");
@@ -89,12 +90,11 @@ menuButton.addEventListener("click", () => {
 
 이벤트는 클릭, 입력, 폼 제출, 스크롤처럼 브라우저에서 발생하는 동작입니다. `addEventListener()`는 해당 이벤트가 발생했을 때 실행할 함수를 요소에 연결합니다. 이번 프로젝트에서는 `click`, `input`, `submit`, `scroll`을 처리하며 HTML 안에 동작을 직접 작성하지 않습니다.
 
-
-| 방식 | 작성 위치·특징 | 고려할 점 |
-| --- | --- | --- |
-| HTML onclick 속성 | HTML에 실행할 JavaScript 작성 | 구조와 동작이 섞임 |
-| element.onclick 대입 | JavaScript에서 이벤트 속성에 함수 대입 | 같은 속성에 다시 대입하면 기존 핸들러 교체 |
-| addEventListener | JavaScript에서 리스너 등록 | 서로 다른 리스너를 여러 개 등록하고 옵션 지정 가능 |
+| 방식                 | 작성 위치·특징                         | 고려할 점                                          |
+| -------------------- | -------------------------------------- | -------------------------------------------------- |
+| HTML onclick 속성    | HTML에 실행할 JavaScript 작성          | 구조와 동작이 섞임                                 |
+| element.onclick 대입 | JavaScript에서 이벤트 속성에 함수 대입 | 같은 속성에 다시 대입하면 기존 핸들러 교체         |
+| addEventListener     | JavaScript에서 리스너 등록             | 서로 다른 리스너를 여러 개 등록하고 옵션 지정 가능 |
 
 이번 프로젝트는 HTML의 인라인 `onclick`을 사용하지 않습니다. 구조와 동작을 분리하고 이벤트 등록 위치를 JavaScript에서 찾을 수 있도록 `addEventListener`를 사용했습니다. 같은 함수와 옵션으로 중복 등록하는 경우까지 무조건 리스너가 늘어나는 것은 아닙니다. 리스너를 나중에 제거해야 한다면 이름 있는 함수 참조를 보관해 `removeEventListener`에 전달할 수 있습니다.
 
@@ -119,11 +119,11 @@ const projectHTML = repositories
 
 ### map·forEach·filter의 역할
 
-| 메서드 | 목적 | 현재 프로젝트 |
-| --- | --- | --- |
-| map | 각 원소를 변환한 새 배열 생성 | 저장소 → 카드 HTML 문자열 |
-| forEach | 각 원소에 대해 작업 수행 | 링크 이벤트 연결, 섹션 관찰 등록, 관찰 결과 처리 |
-| filter | 조건을 만족하는 원소만 새 배열로 선택 | 미사용. 선택 과제인 프로젝트 필터링에 활용 가능 |
+| 메서드  | 목적                                  | 현재 프로젝트                                    |
+| ------- | ------------------------------------- | ------------------------------------------------ |
+| map     | 각 원소를 변환한 새 배열 생성         | 저장소 → 카드 HTML 문자열                        |
+| forEach | 각 원소에 대해 작업 수행              | 링크 이벤트 연결, 섹션 관찰 등록, 관찰 결과 처리 |
+| filter  | 조건을 만족하는 원소만 새 배열로 선택 | 미사용. 선택 과제인 프로젝트 필터링에 활용 가능  |
 
 ### 폼 검증 순서
 
@@ -145,7 +145,6 @@ API는 서로 다른 프로그램이 정해진 방식으로 데이터나 기능�
 
 HTTP는 클라이언트와 서버가 요청과 응답을 주고받는 통신 규칙입니다. 이 프로젝트는 HTTPS 주소로 GitHub에 저장소 목록을 요청합니다.
 
-
 `fetch()`는 HTTP 요청을 보내고 응답을 나타내는 Promise를 반환합니다. `async` 함수 안에서 `await`를 사용해 응답을 받은 뒤 다음 처리를 이어갑니다. `await fetch(...)`로 응답을 받은 다음 `response.ok`를 검사하고, 성공 응답이면 `await response.json()`으로 본문을 JavaScript 값으로 변환합니다.
 
 `response.ok`는 응답 상태 코드가 200~299이면 true입니다. HTTP 403·404·500처럼 서버가 오류 상태를 반환하더라도 `fetch` 자체가 반드시 reject되는 것은 아닙니다. 따라서 `response.ok`가 false이면 직접 Error를 발생시켜 catch로 이동합니다. 네트워크 실패나 JSON 해석 실패도 catch에서 처리합니다.
@@ -156,23 +155,23 @@ HTTP는 클라이언트와 서버가 요청과 응답을 주고받는 통신 규
 
 아래 표의 번호는 전달받은 15개 평가 항목에 대응합니다. 구현 근거는 현재 소스 기준이며, 브라우저 실행 검증과는 구분합니다.
 
-| 번호 | 평가 내용 | 구현 근거와 설명 |
-| --- | --- | --- |
-| 1 | 모바일 퍼스트·반응형 | [style.css](css/style.css)의 기본 모바일 스타일과 `@media (min-width: 768px)`, `@media (min-width: 1024px)`. 화면별 변경 사항은 아래 표 참고 |
-| 2 | 테마 저장·복원 | [main.js](js/main.js)의 `savedTheme`, `updateThemeButton`. 저장값이 없으면 밝은 테마, 있으면 저장값 적용 |
-| 3 | 인터랙티브 UI | `classList.toggle('active')`, `window.scrollTo`, `IntersectionObserver`. 스크롤 기준은 60px·300px, 애니메이션 threshold는 0.2 |
-| 4 | API 상태 처리 | `loadProjects`에서 로딩·성공·빈 목록·실패를 분기. 실패 UI는 있으나 재시도 연결에 알려진 오류가 있음 |
-| 5 | 폼 유효성 검사 | `validateEmail`, `clearErrors`, submit/input 핸들러. 필수값·이메일 검사 및 필드별 오류 표시 |
-| 6 | 파일 분리·배포 | HTML에서 외부 CSS와 `defer` JS 연결. 자원 경로는 `./css/`, `./js/`, `./images/` 상대 경로 사용. GitHub Pages 배포 완료 |
-| 7 | 시맨틱 구조 | [index.html](index.html)의 header/nav/main/section/footer와 동적 카드의 article. 프로필 alt, label의 for-id 연결 |
-| 8 | CSS 변수 | `:root`의 색상·간격·헤더 높이·최대 너비, `[data-theme="dark"]`의 테마 색상 재정의. 사용 범위와 한계는 아래 설명 참고 |
-| 9 | 이벤트 처리·재사용 | click/scroll/submit/input을 `addEventListener`로 연결. `loadProjects`, `updateThemeButton`, `validateEmail`, `clearErrors`를 명명된 함수로 분리 |
-| 10 | 이벤트→상태→렌더링 | 테마·메뉴·API·폼의 상태 흐름을 아래 표에 정리. 상태는 dataset·class·지역 변수로 표현 |
-| 11 | 비동기·예외 처리 | `fetch` + `async/await`, `response.ok` 검사, `try/catch`. 수동 재시도 버튼을 생성하며 자동 재시도·타임아웃은 없음 |
-| 12 | 배열 메서드·ES6+ | 저장소는 `map`으로 카드 변환, 메뉴 링크·관찰 대상·Observer entries는 `forEach`로 순회. 구조분해·화살표 함수·템플릿 리터럴 사용 |
-| 13 | Flex/Grid 선택 이유 | 내비게이션과 카드 내부의 한 방향 정렬은 Flex, 여러 프로젝트 카드의 행·열 배치는 Grid. 상세 이유는 아래 설명 참고 |
-| 14 | 상태 관리 패턴 | 전역 `STATE` 객체 없이 dataset·class·지역 변수와 DOM으로 상태 표현. 현재 상태 표현 방식과 전환을 아래 표에 명시 |
-| 15 | 접근성 | `lang="ko"`, viewport, label/alt, 버튼 aria-label, 메뉴 aria-expanded, 동적 안내 aria-live. 키보드·스크린리더 실기 검증은 미실시 |
+| 번호 | 평가 내용            | 구현 근거와 설명                                                                                                                                |
+| ---- | -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1    | 모바일 퍼스트·반응형 | [style.css](css/style.css)의 기본 모바일 스타일과 `@media (min-width: 768px)`, `@media (min-width: 1024px)`. 화면별 변경 사항은 아래 표 참고    |
+| 2    | 테마 저장·복원       | [main.js](js/main.js)의 `savedTheme`, `updateThemeButton`. 저장값이 없으면 밝은 테마, 있으면 저장값 적용                                        |
+| 3    | 인터랙티브 UI        | `classList.toggle('active')`, `window.scrollTo`, `IntersectionObserver`. 스크롤 기준은 60px·300px, 애니메이션 threshold는 0.2                   |
+| 4    | API 상태 처리        | `loadProjects`에서 로딩·성공·빈 목록·실패를 분기. 실패 UI는 있으나 재시도 연결에 알려진 오류가 있음                                             |
+| 5    | 폼 유효성 검사       | `validateEmail`, `clearErrors`, submit/input 핸들러. 필수값·이메일 검사 및 필드별 오류 표시                                                     |
+| 6    | 파일 분리·배포       | HTML에서 외부 CSS와 `defer` JS 연결. 자원 경로는 `./css/`, `./js/`, `./images/` 상대 경로 사용. GitHub Pages 배포 완료                          |
+| 7    | 시맨틱 구조          | [index.html](index.html)의 header/nav/main/section/footer와 동적 카드의 article. 프로필 alt, label의 for-id 연결                                |
+| 8    | CSS 변수             | `:root`의 색상·간격·헤더 높이·최대 너비, `[data-theme="dark"]`의 테마 색상 재정의. 사용 범위와 한계는 아래 설명 참고                            |
+| 9    | 이벤트 처리·재사용   | click/scroll/submit/input을 `addEventListener`로 연결. `loadProjects`, `updateThemeButton`, `validateEmail`, `clearErrors`를 명명된 함수로 분리 |
+| 10   | 이벤트→상태→렌더링   | 테마·메뉴·API·폼의 상태 흐름을 아래 표에 정리. 상태는 dataset·class·지역 변수로 표현                                                            |
+| 11   | 비동기·예외 처리     | `fetch` + `async/await`, `response.ok` 검사, `try/catch`. 수동 재시도 버튼을 생성하며 자동 재시도·타임아웃은 없음                               |
+| 12   | 배열 메서드·ES6+     | 저장소는 `map`으로 카드 변환, 메뉴 링크·관찰 대상·Observer entries는 `forEach`로 순회. 구조분해·화살표 함수·템플릿 리터럴 사용                  |
+| 13   | Flex/Grid 선택 이유  | 내비게이션과 카드 내부의 한 방향 정렬은 Flex, 여러 프로젝트 카드의 행·열 배치는 Grid. 상세 이유는 아래 설명 참고                                |
+| 14   | 상태 관리 패턴       | 전역 `STATE` 객체 없이 dataset·class·지역 변수와 DOM으로 상태 표현. 현재 상태 표현 방식과 전환을 아래 표에 명시                                 |
+| 15   | 접근성               | `lang="ko"`, viewport, label/alt, 버튼 aria-label, 메뉴 aria-expanded, 동적 안내 aria-live. 키보드·스크린리더 실기 검증은 미실시                |
 
 ### 배열 메서드와 상태 관리의 구현 범위
 
@@ -190,7 +189,6 @@ Hero(인사말·CTA), About(자기소개·프로필), Skills(기술 목록), Pro
 
 Flexbox는 행 또는 열의 한 방향으로 요소를 배치하고 정렬하는 데 적합하고, Grid는 행과 열을 함께 사용하는 2차원 배치에 적합합니다. 모든 영역에 같은 방법을 적용하기보다 각 영역의 배치 관계에 맞추어 선택했습니다.
 
-
 - **내비게이션 — Flexbox:** 로고·메뉴·테마 버튼을 가로 방향으로 정렬하고 `align-items`와 `justify-content`로 간격과 정렬을 제어합니다.
 - **About·버튼·Footer — Flexbox:** 모바일에서는 세로로 쌓고, 넓은 화면에서는 `flex-direction: row`로 전환합니다.
 - **Projects — Grid:** `repeat(auto-fit, minmax(250px, 1fr))`로 컨테이너 너비에 맞춰 열 수를 자동 조절합니다. 프로젝트 개수가 달라져도 일정한 최소 카드 너비를 유지합니다.
@@ -202,35 +200,33 @@ Flexbox는 행 또는 열의 한 방향으로 요소를 배치하고 정렬하�
 
 반응형 웹은 화면 너비에 맞추어 콘텐츠 배치와 표현을 조정하는 방식입니다. 모바일 퍼스트로 작은 화면의 스타일을 먼저 작성하고, `min-width` 미디어쿼리로 넓은 화면에서 필요한 규칙을 추가했습니다. 모바일 구성을 기본으로 유지하면서 태블릿과 데스크톱에서 가로 배치와 메뉴 표시를 확장합니다.
 
-
-| 화면 너비 | 적용 규칙 | 코드에서 확인할 수 있는 변화 |
-| --- | --- | --- |
-| 768px 미만 | 기본 모바일 스타일 | 메뉴는 기본 숨김, 햄버거 표시. Hero 버튼·About·Footer 세로 배치 |
-| 768px 이상, 1024px 미만 | 태블릿 미디어쿼리 | Hero 버튼·About·Footer 가로 배치. 햄버거 메뉴 유지 |
-| 1024px 이상 | 데스크톱 미디어쿼리 | 햄버거 숨김, 내비게이션 메뉴 가로 표시. 제목 크기와 섹션 여백 확대 |
+| 화면 너비               | 적용 규칙           | 코드에서 확인할 수 있는 변화                                       |
+| ----------------------- | ------------------- | ------------------------------------------------------------------ |
+| 768px 미만              | 기본 모바일 스타일  | 메뉴는 기본 숨김, 햄버거 표시. Hero 버튼·About·Footer 세로 배치    |
+| 768px 이상, 1024px 미만 | 태블릿 미디어쿼리   | Hero 버튼·About·Footer 가로 배치. 햄버거 메뉴 유지                 |
+| 1024px 이상             | 데스크톱 미디어쿼리 | 햄버거 숨김, 내비게이션 메뉴 가로 표시. 제목 크기와 섹션 여백 확대 |
 
 프로젝트 카드는 별도 기기 구분 없이 Grid의 가용 너비에 따라 열 수가 바뀝니다. 위 표는 코드 분석 결과이며 모든 너비에서의 브라우저 검증 완료를 뜻하지 않습니다.
 
 ## 7. 주요 인터랙션과 상태 흐름
 
-| 기능 | 이벤트·조건 | 상태 표현 | 화면 업데이트 |
-| --- | --- | --- | --- |
-| 메뉴 | 햄버거 클릭 | 메뉴의 `active` 클래스 | 메뉴 표시/숨김, 버튼 문자와 `aria-expanded` 갱신 |
-| 메뉴 닫기 | 메뉴 링크 클릭 | `active` 제거 | 메뉴 닫기, 버튼을 ☰로 복원 |
-| 테마 | 테마 버튼 클릭 | `documentElement.dataset.theme`와 localStorage | CSS 변수 변경, 버튼 Light/Dark 갱신 |
-| 헤더 | 스크롤 60px 이상 | `scrolled` 클래스 | 헤더 그림자 추가 |
-| 맨 위로 | 스크롤 300px 이상 | 버튼의 `visible` 클래스 | 버튼 표시. 클릭하면 top: 0으로 부드럽게 이동 |
-| 등장 애니메이션 | IntersectionObserver threshold 0.2 | 섹션의 `visible` 클래스 | opacity·translateY 전환 |
-| API | 페이지 로드·재시도 | 요청 진행 단계와 응답 결과 | 로딩 안내 → 카드·빈 목록 안내·오류 안내 중 하나 |
-| 폼 | 제출 | 지역 변수 `isValid` | 필드별 오류 또는 성공 메시지 표시 |
-| 입력 수정 | input | 해당 필드의 오류 텍스트 초기화 | 오류·기존 성공 메시지 숨김 |
+| 기능            | 이벤트·조건                        | 상태 표현                                      | 화면 업데이트                                    |
+| --------------- | ---------------------------------- | ---------------------------------------------- | ------------------------------------------------ |
+| 메뉴            | 햄버거 클릭                        | 메뉴의 `active` 클래스                         | 메뉴 표시/숨김, 버튼 문자와 `aria-expanded` 갱신 |
+| 메뉴 닫기       | 메뉴 링크 클릭                     | `active` 제거                                  | 메뉴 닫기, 버튼을 ☰로 복원                       |
+| 테마            | 테마 버튼 클릭                     | `documentElement.dataset.theme`와 localStorage | CSS 변수 변경, 버튼 Light/Dark 갱신              |
+| 헤더            | 스크롤 60px 이상                   | `scrolled` 클래스                              | 헤더 그림자 추가                                 |
+| 맨 위로         | 스크롤 300px 이상                  | 버튼의 `visible` 클래스                        | 버튼 표시. 클릭하면 top: 0으로 부드럽게 이동     |
+| 등장 애니메이션 | IntersectionObserver threshold 0.2 | 섹션의 `visible` 클래스                        | opacity·translateY 전환                          |
+| API             | 페이지 로드·재시도                 | 요청 진행 단계와 응답 결과                     | 로딩 안내 → 카드·빈 목록 안내·오류 안내 중 하나  |
+| 폼              | 제출                               | 지역 변수 `isValid`                            | 필드별 오류 또는 성공 메시지 표시                |
+| 입력 수정       | input                              | 해당 필드의 오류 텍스트 초기화                 | 오류·기존 성공 메시지 숨김                       |
 
 ### 다크 모드 전환과 초기 테마 결정
 
 테마 버튼을 클릭하면 현재 `data-theme` 값을 읽고 다음 값을 light 또는 dark로 결정합니다. 이 값을 루트 요소에 적용하면 CSS의 `[data-theme="dark"]` 선택자가 해당 색상 변수를 덮어씁니다. 각 요소의 색상을 JavaScript에서 하나씩 수정하지 않고 공통 변수 변경으로 화면 테마를 바꾸는 구조입니다.
 
 localStorage는 브라우저에서 출처별로 문자열 데이터를 저장하는 기능입니다. 테마는 `theme` 키로 저장하며, 일반적으로 새로고침하거나 브라우저를 다시 열어도 남아 있습니다. 사용자가 사이트 데이터를 삭제하면 저장값도 사라집니다.
-
 
 1. `localStorage.getItem("theme")`으로 이전 선택을 읽습니다.
 2. 저장값이 있으면 `data-theme`에 적용합니다.
@@ -266,7 +262,6 @@ loadProjects 호출
 
 폼을 제출하면 브라우저는 기본적으로 제출 동작을 수행합니다. `preventDefault()`는 이를 막아 현재 페이지에서 입력값 검증과 결과 표시를 처리할 수 있게 합니다. 이벤트가 상위 요소로 전달되는 전파를 막는 기능과는 다릅니다.
 
-
 `novalidate`로 브라우저 기본 검증 대신 JavaScript 검증을 사용하고 `event.preventDefault()`로 기본 제출을 막습니다. `trim()`으로 공백을 제거한 후 이름·이메일·메시지의 빈값과 이메일 형식을 확인합니다. `clearErrors`로 이전 안내를 지운 뒤 필드 가까이에 오류를 표시하며, 입력 수정 시 해당 오류를 지웁니다.
 
 각 필드는 label과 for-id로 연결되어 있습니다. 성공 안내와 프로젝트 상태 영역에는 `aria-live="polite"`, 메뉴 버튼에는 `aria-expanded`가 있습니다. 오류 필드로 자동 포커스 이동, `aria-invalid`, 오류 문구와의 `aria-describedby` 연결은 구현하지 않았습니다. 실제 이메일 전송 없이 검증 결과만 표시합니다.
@@ -279,13 +274,13 @@ IntersectionObserver는 관찰 대상과 화면 등의 기준 영역이 교차�
 
 ## 8. CSS 변수와 유지보수
 
-| 변수 그룹 | 대표 변수 | 현재 사용 방식 |
-| --- | --- | --- |
-| 배경·텍스트 | `--background-color`, `--text-color`, `--sub-text-color` | body·헤더·보조 설명의 색상 |
-| 표면·테두리 | `--surface-color`, `--card-color`, `--border-color` | 기술 목록·카드·입력 필드·Footer |
-| 강조·상태 | `--primary-color`, `--primary-hover-color`, `--error-color`, `--success-color` | 버튼·링크·프로필 테두리·검증 안내 |
-| 레이아웃 | `--header-height`, `--max-width` | 헤더·모바일 메뉴 위치·콘텐츠 최대 너비 |
-| 간격 | `--spacing-small`, `--spacing-medium`, `--spacing-large` | 선언되어 있으나 현재 실제 스타일에서는 참조하지 않음 |
+| 변수 그룹   | 대표 변수                                                                      | 현재 사용 방식                                       |
+| ----------- | ------------------------------------------------------------------------------ | ---------------------------------------------------- |
+| 배경·텍스트 | `--background-color`, `--text-color`, `--sub-text-color`                       | body·헤더·보조 설명의 색상                           |
+| 표면·테두리 | `--surface-color`, `--card-color`, `--border-color`                            | 기술 목록·카드·입력 필드·Footer                      |
+| 강조·상태   | `--primary-color`, `--primary-hover-color`, `--error-color`, `--success-color` | 버튼·링크·프로필 테두리·검증 안내                    |
+| 레이아웃    | `--header-height`, `--max-width`                                               | 헤더·모바일 메뉴 위치·콘텐츠 최대 너비               |
+| 간격        | `--spacing-small`, `--spacing-medium`, `--spacing-large`                       | 선언되어 있으나 현재 실제 스타일에서는 참조하지 않음 |
 
 현재 사용 예:
 
