@@ -62,15 +62,48 @@ menuButton.addEventListener("click", () => {
 
 버튼 클릭은 이벤트이고, 불리언 반전은 상태 변경이며, `renderMenu()`는 화면 갱신입니다. render 함수에서는 `classList.toggle('active', STATE.menuOpen)`으로 상태에 맞게 클래스를 적용합니다. 두 번째 인자를 생략하면 클래스 유무를 반전하지만, 여기서는 STATE의 값에 따라 추가·제거하므로 렌더 함수를 반복 호출해도 상태와 화면이 어긋나지 않습니다.
 
-### onclick과 addEventListener의 차이
+### onclick과 addEventListener의 정의와 차이점
 
-| 방식                 | 특징                                                      |
-| -------------------- | --------------------------------------------------------- |
-| HTML onclick 속성    | HTML에 JavaScript를 작성하여 구조와 동작이 섞임           |
-| element.onclick 대입 | 동일 속성에 다시 대입하면 이전 핸들러 교체                |
-| addEventListener     | 서로 다른 리스너를 추가 등록하고 once 등의 옵션 지정 가능 |
+`onclick`은 요소의 클릭 이벤트가 발생했을 때 실행할 동작을 지정하는 이벤트 핸들러입니다. HTML의 `onclick` 속성에 코드를 작성하거나, JavaScript에서 요소의 `onclick` 프로퍼티에 함수를 대입할 수 있습니다.
 
-이번 프로젝트는 HTML과 동작의 역할을 분리하기 위해 addEventListener를 사용합니다. 이름 있는 함수 참조를 보관하면 removeEventListener로 제거할 수도 있습니다. 동일 함수와 옵션을 중복 등록하는 경우 무조건 리스너가 늘어나는 것은 아닙니다.
+```html
+<!-- HTML 속성에 클릭 동작 작성: 설명용 예시이며 프로젝트에서는 사용하지 않음 -->
+<button onclick="console.log('클릭')">버튼</button>
+```
+
+```javascript
+// JavaScript의 onclick 프로퍼티에 함수 대입
+button.onclick = () => console.log('첫 번째 동작');
+button.onclick = () => console.log('두 번째 동작');
+// 같은 프로퍼티에 다시 대입했으므로 클릭하면 두 번째 동작만 실행됩니다.
+```
+
+`addEventListener()`는 요소 등의 이벤트 대상에 특정 이벤트를 처리할 함수인 리스너를 등록하는 메서드입니다. 이벤트 이름과 실행할 함수를 전달하며, click 외에도 input, submit, scroll 등 여러 이벤트를 처리할 수 있습니다. onclick과 마찬가지로 등록 시점에 함수를 실행하는 것이 아니라 이벤트 발생 시 실행할 동작을 연결합니다.
+
+```javascript
+const handleFirstClick = () => console.log('첫 번째 동작');
+const handleSecondClick = () => console.log('두 번째 동작');
+
+button.addEventListener('click', handleFirstClick);
+button.addEventListener('click', handleSecondClick);
+// 클릭하면 등록한 두 리스너가 실행됩니다.
+
+button.removeEventListener('click', handleFirstClick);
+// 이후 클릭에는 두 번째 리스너만 실행됩니다.
+```
+
+| 비교 항목 | onclick | addEventListener() |
+| --- | --- | --- |
+| 등록 방식 | HTML 속성에 코드 작성 또는 JS 프로퍼티에 함수 대입 | JavaScript에서 메서드 호출로 리스너 등록 |
+| 같은 요소의 클릭 처리 | onclick 프로퍼티는 하나의 핸들러를 가지며 재대입하면 교체 | 서로 다른 클릭 리스너를 추가 등록 가능 |
+| 처리할 이벤트 지정 | 클릭 전용 이름. 입력은 oninput 등 별도 프로퍼티 사용 | 첫 번째 인자에 click·input·submit 등 이벤트 이름 지정 |
+| 제거 방식 | JS에서 element.onclick = null | 동일한 함수 참조와 capture 값으로 removeEventListener 호출 |
+| 실행 옵션 | 대입 방식 자체에는 once·passive·capture 옵션 없음 | once·passive·capture 등의 옵션 지정 가능 |
+| 구조와 동작 분리 | HTML 속성 방식은 혼합되지만 JS 프로퍼티 방식은 분리 가능 | JavaScript 파일에서 등록하여 분리 가능 |
+
+addEventListener도 같은 이벤트 유형·함수 참조·capture 값으로 중복 등록하면 같은 리스너가 여러 개 추가되지는 않습니다. 또한 이름 없는 함수를 바로 전달하면 나중에 제거할 때 사용할 함수 참조를 보관하기 어려우므로, 제거가 필요한 리스너는 이름 있는 함수나 변수에 저장한 함수를 사용합니다.
+
+이번 프로젝트에서는 **HTML과 JavaScript의 역할을 분리하고 이벤트를 일관된 방식으로 관리하기 위해 addEventListener를 선택**했습니다. 메뉴·테마 버튼에는 click, 폼에는 submit, 입력 필드에는 input, 화면에는 scroll 이벤트를 연결합니다. 여러 리스너를 등록할 수 있다는 점은 메서드의 장점이며, 모든 요소에 여러 리스너를 등록해야 한다는 의미는 아닙니다.
 
 ### API·HTTP·비동기 처리
 
