@@ -1,361 +1,198 @@
-/**
- * =========================================
- *    DOM Elements
- * =========================================
- *
- * @format
- */
+/** 사용자 이벤트 → STATE 변경 → render 함수 → 화면 갱신 */
+const header = document.querySelector('.header');
+const menuButton = document.querySelector('.menu-toggle');
+const navMenu = document.querySelector('.nav-menu');
+const themeButton = document.querySelector('.theme-toggle');
+const scrollTopButton = document.querySelector('#scroll-top');
+const projectStatus = document.querySelector('#project-status');
+const projectList = document.querySelector('#project-list');
+const projectFilters = document.querySelector('#project-filters');
+const contactForm = document.querySelector('#contact-form');
+const fields = {
+  name: document.querySelector('#name'),
+  email: document.querySelector('#email'),
+  message: document.querySelector('#message'),
+};
+const formSuccess = document.querySelector('#form-success');
+const savedTheme = localStorage.getItem('theme');
 
-const header = document.querySelector(".header");
-
-const menuButton = document.querySelector(".menu-toggle");
-
-const navMenu = document.querySelector(".nav-menu");
-
-const navLinks = document.querySelectorAll(".nav-menu a");
-
-const themeButton = document.querySelector(".theme-toggle");
-
-const scrollTopButton = document.querySelector("#scroll-top");
-
-const projectStatus = document.querySelector("#project-status");
-
-const projectList = document.querySelector("#project-list");
-
-const contactForm = document.querySelector("#contact-form");
-
-const nameInput = document.querySelector("#name");
-
-const emailInput = document.querySelector("#email");
-
-const messageInput = document.querySelector("#message");
-
-const nameError = document.querySelector("#name-error");
-
-const emailError = document.querySelector("#email-error");
-
-const messageError = document.querySelector("#message-error");
-
-const formSuccess = document.querySelector("#form-success");
-
-/* =========================================
-   1. Hamburger Menu
-========================================= */
-
-menuButton.addEventListener("click", () => {
-  /*
-      사용자 클릭
-      ↓
-      active 클래스 상태 변경
-      ↓
-      메뉴 화면 변경
-    */
-
-  navMenu.classList.toggle("active");
-
-  const isOpen = navMenu.classList.contains("active");
-
-  menuButton.setAttribute("aria-expanded", isOpen);
-
-  menuButton.textContent = isOpen ? "✕" : "☰";
-});
-
-navLinks.forEach((link) => {
-  link.addEventListener("click", () => {
-    navMenu.classList.remove("active");
-
-    menuButton.setAttribute("aria-expanded", "false");
-
-    menuButton.textContent = "☰";
-  });
-});
-
-/* =========================================
-   2. Dark Mode
-========================================= */
-
-// 기존 테마 가져오기
-const savedTheme = localStorage.getItem("theme");
-
-// 저장된 페이지가 있다면 적용함
-if (savedTheme) {
-  document.documentElement.dataset.theme = savedTheme;
-}
-
-// 테마에 맞게 변경
-const updateThemeButton = () => {
-  const currentTheme = document.documentElement.dataset.theme;
-
-  themeButton.textContent = currentTheme === "dark" ? "Light" : "Dark";
+// 화면 상태의 기준은 STATE이며, DOM은 각 render 함수에서 갱신합니다.
+const STATE = {
+  theme: savedTheme === 'dark' ? 'dark' : 'light',
+  menuOpen: false,
+  scrollPosition: window.scrollY,
+  projects: { status: 'idle', repositories: [], language: 'all', error: '' },
+  form: { errors: { name: '', email: '', message: '' }, success: false },
 };
 
-updateThemeButton();
-
-themeButton.addEventListener("click", () => {
-  const currentTheme = document.documentElement.dataset.theme;
-
-  const nextTheme = currentTheme === "dark" ? "light" : "dark";
-
-  document.documentElement.dataset.theme = nextTheme;
-
-  localStorage.setItem("theme", nextTheme);
-
-  updateThemeButton();
+const renderMenu = () => {
+  navMenu.classList.toggle('active', STATE.menuOpen);
+  menuButton.setAttribute('aria-expanded', String(STATE.menuOpen));
+  menuButton.setAttribute('aria-label', STATE.menuOpen ? '메뉴 닫기' : '메뉴 열기');
+  menuButton.textContent = STATE.menuOpen ? '✕' : '☰';
+};
+const renderTheme = () => {
+  document.documentElement.dataset.theme = STATE.theme;
+  themeButton.textContent = STATE.theme === 'dark' ? 'Light' : 'Dark';
+  themeButton.setAttribute('aria-label', STATE.theme === 'dark' ? '라이트 모드로 변경' : '다크 모드로 변경');
+};
+const renderScroll = () => {
+  header.classList.toggle('scrolled', STATE.scrollPosition >= 60);
+  scrollTopButton.classList.toggle('visible', STATE.scrollPosition >= 300);
+};
+menuButton.addEventListener('click', () => {
+  STATE.menuOpen = !STATE.menuOpen;
+  renderMenu();
 });
-
-/* =========================================
-   3. Scroll Event
-========================================= */
-
-window.addEventListener("scroll", () => {
-  const scrollPosition = window.scrollY;
-
-  // 60px 이상 스크롤하면 Header 스타일 변경
-
-  if (scrollPosition >= 60) {
-    header.classList.add("scrolled");
-  } else {
-    header.classList.remove("scrolled");
-  }
-
-  // 300px 이상 스크롤하면 Scroll Top 버튼 표시
-
-  if (scrollPosition >= 300) {
-    scrollTopButton.classList.add("visible");
-  } else {
-    scrollTopButton.classList.remove("visible");
-  }
-});
-
-/* =========================================
-   4. Scroll Top
-========================================= */
-
-scrollTopButton.addEventListener("click", () => {
-  window.scrollTo({
-    top: 0,
-    behavior: "smooth",
+document.querySelectorAll('.nav-menu a').forEach((link) => {
+  link.addEventListener('click', () => {
+    STATE.menuOpen = false;
+    renderMenu();
   });
 });
-
-/* =========================================
-   5. Scroll Animation
-========================================= */
-
-const revealElements = document.querySelectorAll(".reveal");
-
-const observer = new IntersectionObserver(
-  (entries) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add("visible");
-      }
-    });
-  },
-
-  {
-    // 과제 요구사항에 맞춰 threshold 0.2 사용
-
-    threshold: 0.2,
-  }
-);
-
-revealElements.forEach((element) => {
-  observer.observe(element);
+themeButton.addEventListener('click', () => {
+  STATE.theme = STATE.theme === 'dark' ? 'light' : 'dark';
+  localStorage.setItem('theme', STATE.theme);
+  renderTheme();
 });
+window.addEventListener('scroll', () => {
+  STATE.scrollPosition = window.scrollY;
+  renderScroll();
+});
+scrollTopButton.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
 
-/* =========================================
-   6. GitHub API
-========================================= */
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach((entry) => {
+    if (entry.isIntersecting) entry.target.classList.add('visible');
+  });
+}, { threshold: 0.2 });
+document.querySelectorAll('.reveal').forEach((element) => observer.observe(element));
 
-const GITHUB_USERNAME = "L-jy16";
+const GITHUB_USERNAME = 'L-jy16';
+const getLanguage = (repository) => repository.language ?? '언어 미지정';
+const escapeHTML = (value) => String(value).replace(/[&<>"']/g, (char) => ({
+  '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+}[char]));
+
+const renderProjectFilters = () => {
+  projectFilters.replaceChildren();
+  if (!['success', 'empty'].includes(STATE.projects.status) || !STATE.projects.repositories.length) return;
+  const languages = ['all', ...new Set(STATE.projects.repositories.map(getLanguage))];
+  languages.forEach((language) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'filter-button';
+    button.textContent = language === 'all' ? '전체' : language;
+    button.setAttribute('aria-pressed', String(STATE.projects.language === language));
+    button.addEventListener('click', () => {
+      STATE.projects.language = language;
+      renderProjects();
+      // 필터를 다시 그린 뒤에도 선택 버튼의 키보드 포커스를 유지합니다.
+      const index = languages.indexOf(language);
+      projectFilters.children[index].focus();
+    });
+    projectFilters.append(button);
+  });
+};
+
+const renderProjects = () => {
+  const { status, repositories, language, error } = STATE.projects;
+  projectStatus.textContent = '';
+  projectList.innerHTML = '';
+  renderProjectFilters();
+  if (status === 'loading') {
+    projectStatus.textContent = '프로젝트를 불러오는 중...';
+    return;
+  }
+  if (status === 'error') {
+    projectStatus.textContent = error;
+    const retryButton = document.createElement('button');
+    retryButton.type = 'button';
+    retryButton.className = 'retry-button';
+    retryButton.textContent = '다시 시도';
+    retryButton.addEventListener('click', loadProjects);
+    projectStatus.append(retryButton);
+    return;
+  }
+  if (status === 'idle') return;
+  // 원본 배열은 유지하고 선택한 언어에 맞는 프로젝트만 표시합니다.
+  const visibleRepositories = repositories.filter((repository) =>
+    language === 'all' || getLanguage(repository) === language
+  );
+  if (!visibleRepositories.length) {
+    projectStatus.textContent = repositories.length
+      ? '선택한 언어의 프로젝트가 없습니다.' : '표시할 프로젝트가 없습니다.';
+    return;
+  }
+  projectStatus.textContent = `${visibleRepositories.length}개의 프로젝트`;
+  projectList.innerHTML = visibleRepositories.map((repository) => {
+    const { name, description, html_url, stargazers_count } = repository;
+    const url = new URL(html_url);
+    const safeURL = url.protocol === 'https:' && url.hostname === 'github.com' ? url.href : 'https://github.com/';
+    return `<article class="project-card">
+      <h3>${escapeHTML(name)}</h3>
+      <p class="project-description">${escapeHTML(description ?? '프로젝트 설명이 없습니다.')}</p>
+      <div class="project-info"><span>Language: ${escapeHTML(getLanguage(repository))}</span><br />
+      <span>Stars: ${escapeHTML(stargazers_count)}</span></div>
+      <a class="project-link" href="${escapeHTML(safeURL)}" target="_blank" rel="noopener noreferrer">GitHub에서 보기 →</a>
+    </article>`;
+  }).join('');
+};
 
 const loadProjects = async () => {
-  projectStatus.textContent = "프로젝트를 불러오는 중...";
-
-  projectList.innerHTML = "";
-
+  STATE.projects.status = 'loading';
+  STATE.projects.error = '';
+  renderProjects();
   try {
-    const response = await fetch(
-      `https://api.github.com/users/${GITHUB_USERNAME}/repos`
-    );
-
-    if (!response.ok) {
-      throw new Error(`GitHub API Error: ${response.status}`);
-    }
+    const response = await fetch(`https://api.github.com/users/${GITHUB_USERNAME}/repos`);
+    if (!response.ok) throw new Error(`GitHub API Error: ${response.status}`);
     const repositories = await response.json();
-
-    if (repositories.length === 0) {
-      projectStatus.textContent = "표시할 프로젝트가 없습니다.";
-
-      return;
-    }
-
-    projectStatus.textContent = "";
-
-    const projectHTML = repositories
-      .map((repository) => {
-        const { name, description, html_url, language, stargazers_count } =
-          repository;
-
-        return `
-            <article class="project-card">
-
-              <h3>
-                ${name}
-              </h3>
-
-              <p class="project-description">
-                ${description ?? "프로젝트 설명이 없습니다."}
-              </p>
-
-              <div class="project-info">
-
-                <span>
-                  Language:
-                  ${language ?? "None"}
-                </span>
-
-                <br />
-
-                <span>
-                  Stars:
-                  ${stargazers_count}
-                </span>
-
-              </div>
-
-              <a
-                class="project-link"
-                href="${html_url}"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                GitHub에서 보기 →
-              </a>
-
-            </article>
-          `;
-      })
-      .join("");
-
-    projectList.innerHTML = projectHTML;
+    if (!Array.isArray(repositories)) throw new Error('잘못된 저장소 응답');
+    STATE.projects.repositories = repositories;
+    STATE.projects.language = 'all';
+    STATE.projects.status = repositories.length ? 'success' : 'empty';
+    renderProjects();
   } catch (error) {
-    console.error("GitHub API Error:", error);
-
-    projectStatus.innerHTML = `
-      프로젝트를 불러올 수 없습니다.
-
-      <button
-        id="retry-button"
-        class="retry-button"
-        type="button"
-      >
-        다시 시도
-      </button>
-    `;
-
-    const retryButton = document.querySelector("#retry-button");
-    ㄴ;
-    retryButton.addEventListener("click", loadProjects);
+    console.error('GitHub API Error:', error);
+    STATE.projects.status = 'error';
+    STATE.projects.error = '프로젝트를 불러올 수 없습니다. 네트워크 연결 또는 GitHub API 이용 제한을 확인한 뒤 다시 시도해주세요.';
+    renderProjects();
   }
 };
 
-loadProjects();
-
-/* =========================================
-   7. Contact Form Validation
-========================================= */
-
-const validateEmail = (email) => {
-  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-  return emailPattern.test(email);
+const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+const renderForm = () => {
+  Object.entries(fields).forEach(([name, input]) => {
+    document.querySelector(`#${name}-error`).textContent = STATE.form.errors[name];
+    input.setAttribute('aria-invalid', String(Boolean(STATE.form.errors[name])));
+    input.setAttribute('aria-describedby', `${name}-error`);
+  });
+  formSuccess.textContent = STATE.form.success ? '문의가 정상적으로 작성되었습니다.' : '';
 };
-
-const clearErrors = () => {
-  nameError.textContent = "";
-
-  emailError.textContent = "";
-
-  messageError.textContent = "";
-
-  formSuccess.textContent = "";
-};
-
-contactForm.addEventListener("submit", (event) => {
+contactForm.addEventListener('submit', (event) => {
   event.preventDefault();
-
-  clearErrors();
-
-  let isValid = true;
-
-  const name = nameInput.value.trim();
-
-  const email = emailInput.value.trim();
-
-  const message = messageInput.value.trim();
-
-  /* -------------------------------
-       Name Validation
-    -------------------------------- */
-
-  if (!name) {
-    nameError.textContent = "이름을 입력해주세요.";
-
-    isValid = false;
-  }
-
-  /* -------------------------------
-       Email Validation
-    -------------------------------- */
-
-  if (!email) {
-    emailError.textContent = "이메일을 입력해주세요.";
-
-    isValid = false;
-  } else if (!validateEmail(email)) {
-    emailError.textContent = "올바른 이메일 형식을 입력해주세요.";
-
-    isValid = false;
-  }
-
-  /* -------------------------------
-       Message Validation
-    -------------------------------- */
-
-  if (!message) {
-    messageError.textContent = "메시지를 입력해주세요.";
-
-    isValid = false;
-  }
-
-  if (isValid) {
-    formSuccess.textContent = "문의가 정상적으로 작성되었습니다.";
-    ㄴ;
-
-    contactForm.reset();
-  }
+  const name = fields.name.value.trim();
+  const email = fields.email.value.trim();
+  const message = fields.message.value.trim();
+  STATE.form.errors = {
+    name: name ? '' : '이름을 입력해주세요.',
+    email: !email ? '이메일을 입력해주세요.' : validateEmail(email) ? '' : '올바른 이메일 형식을 입력해주세요.',
+    message: message ? '' : '메시지를 입력해주세요.',
+  };
+  STATE.form.success = !Object.values(STATE.form.errors).some(Boolean);
+  renderForm();
+  if (STATE.form.success) contactForm.reset();
+  else fields[Object.keys(fields).find((key) => STATE.form.errors[key])].focus();
 });
-
-/* =========================================
-   8. Input Event
-========================================= */
-
-nameInput.addEventListener("input", () => {
-  nameError.textContent = "";
-
-  formSuccess.textContent = "";
+Object.entries(fields).forEach(([name, input]) => {
+  input.addEventListener('input', () => {
+    STATE.form.errors[name] = '';
+    STATE.form.success = false;
+    renderForm();
+  });
 });
-
-emailInput.addEventListener("input", () => {
-  emailError.textContent = "";
-
-  formSuccess.textContent = "";
-});
-
-messageInput.addEventListener("input", () => {
-  messageError.textContent = "";
-
-  formSuccess.textContent = "";
-});
+renderMenu();
+renderTheme();
+renderScroll();
+renderForm();
+loadProjects();

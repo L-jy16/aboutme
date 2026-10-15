@@ -718,3 +718,29 @@ button {
     padding: 100px 20px;
   }
 }
+
+/* 프로젝트 언어 필터 */
+.project-filters {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.filter-button {
+  padding: 8px 16px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background-color: var(--card-color);
+  color: var(--text-color);
+  transition: background-color 0.3s, color 0.3s;
+}
+.filter-button[aria-pressed="true"],
+.filter-button:hover {
+  background-color: var(--primary-color);
+  color: #ffffff;
+}
+.filter-button:focus-visible {
+  outline: 3px solid var(--primary-color);
+  outline-offset: 3px;
+}

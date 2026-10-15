@@ -6,7 +6,7 @@
 
 - [배포 사이트 — GitHub Pages](https://l-jy16.github.io/aboutme/)
 - [GitHub 저장소](https://github.com/L-jy16/aboutme)
-- 구현 범위: PDF의 기본 과제. 프로젝트 필터링·타이핑 효과·실제 이메일 전송·시스템 테마 감지 등 보너스는 구현하지 않았습니다.
+- 구현 범위: PDF의 기본 과제. 언어별 프로젝트 필터링을 추가했습니다. 타이핑 효과·실제 이메일 전송·시스템 테마 감지는 구현하지 않았습니다.
 
 ## 1. 개발 목적과 학습 범위
 
@@ -47,109 +47,68 @@ HTML은 콘텐츠의 구조, CSS는 배치와 표현, JavaScript는 동작을 �
 | images/       | 정적 이미지         | 프로필과 README 화면 캡처                               |
 | README.md     | 설계·실행·평가 안내 | 구현 이유, 동작 흐름, 확인 방법과 한계                  |
 
-페이지가 열리면 다음 순서로 동작합니다.
-
-```text
-index.html 파싱 + 외부 CSS 로드
-  → defer 스크립트 실행: HTML 파싱 이후 DOM 요소 선택
-  → 메뉴·테마·스크롤 등 이벤트 리스너 등록
-  → 저장된 테마 복원과 테마 버튼 갱신
-  → IntersectionObserver 관찰 등록
-  → loadProjects 호출 및 GitHub 요청 시작
-  → 나머지 폼·input 이벤트 리스너 등록
-  → API 응답 결과에 따라 Projects 갱신
-```
-
-API 응답을 기다리는 동안 다른 JavaScript 등록 작업이나 사용자 상호작용을 계속할 수 있습니다. `await`는 해당 비동기 함수의 다음 처리를 기다리게 하며 브라우저 전체를 멈추는 기능은 아닙니다.
+페이지가 열리면 HTML 파싱 후 defer 스크립트가 실행됩니다. DOM 요소 선택 → localStorage 복원 및 STATE 초기화 → 이벤트·Observer 등록 → renderMenu/renderTheme/renderScroll/renderForm 초기 호출 → loadProjects 요청 순서로 진행합니다. API를 기다리는 동안 브라우저의 다른 작업과 사용자 상호작용은 계속할 수 있습니다.
 
 ## 4. 핵심 코드와 구현 이유
 
-아래 예시는 현재 구현의 핵심 부분을 발췌하거나 설명용으로 축약한 것입니다. 전체 동작과 알려진 오류는 뒤의 검증 항목을 함께 참고합니다.
+### DOM 선택과 이벤트 등록
 
-### DOM 선택과 이벤트 연결
-
-DOM(Document Object Model)은 HTML 문서를 JavaScript에서 접근하고 변경할 수 있도록 객체와 트리 구조로 표현한 것입니다. 이번 프로젝트에서는 DOM의 텍스트, 클래스, 속성을 변경하여 사용자 동작을 화면에 반영합니다.
-
-`querySelector()`는 CSS 선택자와 일치하는 첫 번째 요소를 가져오고, `querySelectorAll()`은 일치하는 여러 요소를 가져옵니다. 한 개의 햄버거 버튼은 전자로 선택하고, 여러 내비게이션 링크나 애니메이션 대상 섹션은 후자로 선택해 순회합니다.
+DOM은 HTML을 JavaScript에서 접근할 수 있는 객체와 트리로 표현한 것입니다. `querySelector`는 선택자와 일치하는 첫 요소를, `querySelectorAll`은 여러 요소를 선택합니다. 선택한 요소에 `addEventListener`를 연결하여 click, input, submit, scroll 이벤트를 처리합니다.
 
 ```javascript
-const menuButton = document.querySelector(".menu-toggle");
-const navMenu = document.querySelector(".nav-menu");
-
-menuButton.addEventListener("click", () => {
-  navMenu.classList.toggle("active");
-  const isOpen = navMenu.classList.contains("active");
-  menuButton.setAttribute("aria-expanded", isOpen);
-  menuButton.textContent = isOpen ? "✕" : "☰";
+menuButton.addEventListener('click', () => {
+  STATE.menuOpen = !STATE.menuOpen;
+  renderMenu();
 });
 ```
 
-`querySelector`로 첫 번째 일치 요소를 선택하고 `addEventListener`로 클릭 동작을 연결합니다. `classList.toggle()`은 지정한 클래스가 없으면 추가하고 있으면 제거합니다. 메뉴가 열렸는지는 `active` 클래스의 존재로 판단합니다. 같은 결과를 버튼 문자와 `aria-expanded`에 반영해 화면과 펼침 상태가 함께 바뀌도록 했습니다.
+버튼 클릭은 이벤트이고, 불리언 반전은 상태 변경이며, `renderMenu()`는 화면 갱신입니다. render 함수에서는 `classList.toggle('active', STATE.menuOpen)`으로 상태에 맞게 클래스를 적용합니다. 두 번째 인자를 생략하면 클래스 유무를 반전하지만, 여기서는 STATE의 값에 따라 추가·제거하므로 렌더 함수를 반복 호출해도 상태와 화면이 어긋나지 않습니다.
 
-### 이벤트 등록 방식과 역할 분리
+### onclick과 addEventListener의 차이
 
-이벤트는 클릭, 입력, 폼 제출, 스크롤처럼 브라우저에서 발생하는 동작입니다. `addEventListener()`는 해당 이벤트가 발생했을 때 실행할 함수를 요소에 연결합니다. 이번 프로젝트에서는 `click`, `input`, `submit`, `scroll`을 처리하며 HTML 안에 동작을 직접 작성하지 않습니다.
+| 방식 | 특징 |
+| --- | --- |
+| HTML onclick 속성 | HTML에 JavaScript를 작성하여 구조와 동작이 섞임 |
+| element.onclick 대입 | 동일 속성에 다시 대입하면 이전 핸들러 교체 |
+| addEventListener | 서로 다른 리스너를 추가 등록하고 once 등의 옵션 지정 가능 |
 
-| 방식                 | 작성 위치·특징                         | 고려할 점                                          |
-| -------------------- | -------------------------------------- | -------------------------------------------------- |
-| HTML onclick 속성    | HTML에 실행할 JavaScript 작성          | 구조와 동작이 섞임                                 |
-| element.onclick 대입 | JavaScript에서 이벤트 속성에 함수 대입 | 같은 속성에 다시 대입하면 기존 핸들러 교체         |
-| addEventListener     | JavaScript에서 리스너 등록             | 서로 다른 리스너를 여러 개 등록하고 옵션 지정 가능 |
+이번 프로젝트는 HTML과 동작의 역할을 분리하기 위해 addEventListener를 사용합니다. 이름 있는 함수 참조를 보관하면 removeEventListener로 제거할 수도 있습니다. 동일 함수와 옵션을 중복 등록하는 경우 무조건 리스너가 늘어나는 것은 아닙니다.
 
-이번 프로젝트는 HTML의 인라인 `onclick`을 사용하지 않습니다. 구조와 동작을 분리하고 이벤트 등록 위치를 JavaScript에서 찾을 수 있도록 `addEventListener`를 사용했습니다. 같은 함수와 옵션으로 중복 등록하는 경우까지 무조건 리스너가 늘어나는 것은 아닙니다. 리스너를 나중에 제거해야 한다면 이름 있는 함수 참조를 보관해 `removeEventListener`에 전달할 수 있습니다.
+### API·HTTP·비동기 처리
 
-### 배열을 프로젝트 카드로 변환
+API는 다른 프로그램의 데이터나 기능을 정해진 방식으로 사용하는 인터페이스이고, HTTP는 요청과 응답을 주고받는 통신 규칙입니다. 이 프로젝트는 HTTPS로 GitHub API에 요청하여 프로젝트 정보를 가져옵니다.
 
 ```javascript
-const projectHTML = repositories
-  .map((repository) => {
-    const { name, description, html_url } = repository;
-    return `<article class="project-card">
-      <h3>${name}</h3>
-      <p>${description ?? "프로젝트 설명이 없습니다."}</p>
-      <a href="${html_url}" target="_blank" rel="noopener noreferrer">GitHub에서 보기</a>
-    </article>`;
-  })
-  .join("");
+const response = await fetch(`https://api.github.com/users/${GITHUB_USERNAME}/repos`);
+if (!response.ok) throw new Error(`GitHub API Error: ${response.status}`);
+const repositories = await response.json();
 ```
 
-`map`은 저장소 객체 배열을 카드 문자열 배열로 변환합니다. `join("")`은 문자열을 쉼표 없이 이어 붙여 `innerHTML`에 넣을 수 있는 하나의 문자열을 만듭니다. 구조분해 할당은 객체에서 필요한 값을 꺼내고, 템플릿 리터럴은 문자열 안에 값을 넣는 역할을 합니다.
+fetch는 요청을 시작하고 Promise를 반환합니다. await는 현재 async 함수의 다음 처리를 응답 이후로 이어주며 브라우저 전체를 멈추지 않습니다. response는 응답 객체이며, 실제 저장소 배열은 json 변환 이후 얻습니다. response.ok는 HTTP 상태가 200~299일 때 true입니다. HTTP 오류는 fetch 자체가 reject되지 않을 수 있으므로 직접 검사하고 throw하여 catch에서 처리합니다. 네트워크·JSON 해석 실패도 catch로 이동합니다.
 
-현재 구현은 API 문자열을 `innerHTML`에 직접 삽입합니다. 문자열을 HTML로 해석하므로, 향후 데이터 출처가 확대된다면 `createElement`와 `textContent`로 카드 텍스트를 구성하거나 적절한 정제를 적용하는 개선이 필요합니다.
+### filter·map·forEach 적용
 
-### map·forEach·filter의 역할
-
-| 메서드  | 목적                                  | 현재 프로젝트                                    |
-| ------- | ------------------------------------- | ------------------------------------------------ |
-| map     | 각 원소를 변환한 새 배열 생성         | 저장소 → 카드 HTML 문자열                        |
-| forEach | 각 원소에 대해 작업 수행              | 링크 이벤트 연결, 섹션 관찰 등록, 관찰 결과 처리 |
-| filter  | 조건을 만족하는 원소만 새 배열로 선택 | 미사용. 선택 과제인 프로젝트 필터링에 활용 가능  |
-
-### 폼 검증 순서
-
-```text
-제출 버튼 클릭
-  → preventDefault로 기본 제출 방지
-  → 이전 오류와 성공 문구 초기화
-  → 이름·이메일·메시지의 앞뒤 공백 제거
-  → 빈값 검사 + 이메일 정규식 검사
-      → 오류 있음: 해당 필드 근처에 오류 표시
-      → 오류 없음: 성공 안내 표시
+```javascript
+const visibleRepositories = repositories.filter((repository) =>
+  language === 'all' || getLanguage(repository) === language
+);
 ```
 
-이메일 정규식은 일반적인 입력 실수를 확인하는 간단한 검사입니다. 실제 이메일 주소의 존재나 메일 수신 가능 여부까지 확인하지는 않습니다. 필드의 `input` 이벤트에서는 사용자가 수정 중인 필드의 오류를 지우고, 다음 제출 때 다시 검사합니다.
+filter는 원본을 변경하지 않고 선택한 언어에 맞는 저장소의 새 배열을 만듭니다. 전체를 선택하면 모든 항목이 통과합니다. 언어가 null이면 '언어 미지정'으로 분류합니다. 필터 결과는 map으로 카드 HTML 문자열 배열로 변환하고 join으로 합칩니다. API 문자열은 escapeHTML로 이스케이프하여 텍스트가 HTML로 해석되지 않도록 처리합니다.
 
-### API 통신과 비동기 오류 처리
+| 메서드 | 역할 | 사용 위치 |
+| --- | --- | --- |
+| filter | 조건을 만족하는 원소 선택 | 프로젝트 언어 선택 |
+| map | 각 원소를 변환한 새 배열 생성 | 카드 HTML, 언어 목록 생성 |
+| forEach | 각 원소에 작업 실행 | 필터 버튼 생성, 메뉴·입력 이벤트 등록, 섹션 관찰 |
 
-API는 서로 다른 프로그램이 정해진 방식으로 데이터나 기능을 사용할 수 있도록 제공하는 인터페이스입니다. GitHub API를 사용하면 저장소 이름·설명·언어·별 개수 등을 받아올 수 있으므로, 프로젝트 카드 내용을 HTML에 하나씩 고정해서 작성하지 않고 조회 결과로 생성할 수 있습니다.
+구조분해 할당으로 카드에 필요한 속성을 꺼내고, 템플릿 리터럴로 HTML을 생성하며, 화살표 함수로 이벤트와 배열 처리를 작성했습니다.
 
-HTTP는 클라이언트와 서버가 요청과 응답을 주고받는 통신 규칙입니다. 이 프로젝트는 HTTPS 주소로 GitHub에 저장소 목록을 요청합니다.
+### 폼 검사와 기본 제출 방지
 
-`fetch()`는 HTTP 요청을 보내고 응답을 나타내는 Promise를 반환합니다. `async` 함수 안에서 `await`를 사용해 응답을 받은 뒤 다음 처리를 이어갑니다. `await fetch(...)`로 응답을 받은 다음 `response.ok`를 검사하고, 성공 응답이면 `await response.json()`으로 본문을 JavaScript 값으로 변환합니다.
+preventDefault는 브라우저 기본 제출을 막아 현재 화면에서 JavaScript로 검증하도록 합니다. 이벤트 전파를 막는 메서드는 아닙니다. trim으로 앞뒤 공백을 제거하고 필수값·이메일 형식을 확인한 뒤 STATE.form.errors와 success에 결과를 저장합니다. renderForm은 오류·성공 안내와 aria-invalid를 갱신합니다. 실패하면 첫 오류 필드로 포커스를 옮기고, 성공하면 폼을 초기화합니다. input 이벤트는 해당 필드 오류와 성공 상태를 초기화합니다.
 
-`response.ok`는 응답 상태 코드가 200~299이면 true입니다. HTTP 403·404·500처럼 서버가 오류 상태를 반환하더라도 `fetch` 자체가 반드시 reject되는 것은 아닙니다. 따라서 `response.ok`가 false이면 직접 Error를 발생시켜 catch로 이동합니다. 네트워크 실패나 JSON 해석 실패도 catch에서 처리합니다.
-
-현재 API 오류는 사용자에게 공통 안내를 보여주고 상세 오류는 콘솔에 기록합니다. 요청이 오래 걸릴 때의 타임아웃, 자동 재시도, API 페이지네이션은 구현하지 않았습니다. 따라서 현재 목록을 계정의 모든 저장소를 빠짐없이 가져온 결과라고 보장하지 않습니다.
+이메일 정규식은 간단한 형식 검사이며 실제 주소 존재나 수신 가능 여부는 확인하지 않습니다. 실제 이메일 전송은 제공하지 않습니다.
 
 ## 5. 평가 항목별 구현 근거
 
@@ -158,26 +117,24 @@ HTTP는 클라이언트와 서버가 요청과 응답을 주고받는 통신 규
 | 번호 | 평가 내용            | 구현 근거와 설명                                                                                                                                |
 | ---- | -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
 | 1    | 모바일 퍼스트·반응형 | [style.css](css/style.css)의 기본 모바일 스타일과 `@media (min-width: 768px)`, `@media (min-width: 1024px)`. 화면별 변경 사항은 아래 표 참고    |
-| 2    | 테마 저장·복원       | [main.js](js/main.js)의 `savedTheme`, `updateThemeButton`. 저장값이 없으면 밝은 테마, 있으면 저장값 적용                                        |
+| 2    | 테마 저장·복원       | [main.js](js/main.js)의 `savedTheme`, `STATE.theme`, `renderTheme`. 저장값이 dark이면 다크 테마, 그 외에는 밝은 테마 적용                                        |
 | 3    | 인터랙티브 UI        | `classList.toggle('active')`, `window.scrollTo`, `IntersectionObserver`. 스크롤 기준은 60px·300px, 애니메이션 threshold는 0.2                   |
-| 4    | API 상태 처리        | `loadProjects`에서 로딩·성공·빈 목록·실패를 분기. 실패 UI는 있으나 재시도 연결에 알려진 오류가 있음                                             |
-| 5    | 폼 유효성 검사       | `validateEmail`, `clearErrors`, submit/input 핸들러. 필수값·이메일 검사 및 필드별 오류 표시                                                     |
+| 4    | API 상태 처리        | `loadProjects`에서 로딩·성공·빈 목록·실패를 분기. 실패 안내와 재시도 버튼을 표시하고 클릭 시 다시 요청                                             |
+| 5    | 폼 유효성 검사       | `validateEmail`, `renderForm`, submit/input 핸들러. 필수값·이메일 검사 및 필드별 오류 표시                                                     |
 | 6    | 파일 분리·배포       | HTML에서 외부 CSS와 `defer` JS 연결. 자원 경로는 `./css/`, `./js/`, `./images/` 상대 경로 사용. GitHub Pages 배포 완료                          |
 | 7    | 시맨틱 구조          | [index.html](index.html)의 header/nav/main/section/footer와 동적 카드의 article. 프로필 alt, label의 for-id 연결                                |
 | 8    | CSS 변수             | `:root`의 색상·간격·헤더 높이·최대 너비, `[data-theme="dark"]`의 테마 색상 재정의. 사용 범위와 한계는 아래 설명 참고                            |
-| 9    | 이벤트 처리·재사용   | click/scroll/submit/input을 `addEventListener`로 연결. `loadProjects`, `updateThemeButton`, `validateEmail`, `clearErrors`를 명명된 함수로 분리 |
-| 10   | 이벤트→상태→렌더링   | 테마·메뉴·API·폼의 상태 흐름을 아래 표에 정리. 상태는 dataset·class·지역 변수로 표현                                                            |
+| 9    | 이벤트 처리·재사용   | click/scroll/submit/input을 `addEventListener`로 연결. `loadProjects`, `renderTheme`, `renderProjects`, `renderForm`, `validateEmail`를 명명된 함수로 분리 |
+| 10   | 이벤트→상태→렌더링   | 테마·메뉴·API·폼의 상태 흐름을 아래 표에 정리. STATE 객체에서 상태 변경 후 render 함수 호출                                                            |
 | 11   | 비동기·예외 처리     | `fetch` + `async/await`, `response.ok` 검사, `try/catch`. 수동 재시도 버튼을 생성하며 자동 재시도·타임아웃은 없음                               |
-| 12   | 배열 메서드·ES6+     | 저장소는 `map`으로 카드 변환, 메뉴 링크·관찰 대상·Observer entries는 `forEach`로 순회. 구조분해·화살표 함수·템플릿 리터럴 사용                  |
+| 12   | 배열 메서드·ES6+     | 저장소는 filter로 선택하고 map으로 카드 변환, 메뉴·필터 등은 forEach로 순회. 구조분해·화살표 함수·템플릿 리터럴 사용                  |
 | 13   | Flex/Grid 선택 이유  | 내비게이션과 카드 내부의 한 방향 정렬은 Flex, 여러 프로젝트 카드의 행·열 배치는 Grid. 상세 이유는 아래 설명 참고                                |
-| 14   | 상태 관리 패턴       | 전역 `STATE` 객체 없이 dataset·class·지역 변수와 DOM으로 상태 표현. 현재 상태 표현 방식과 전환을 아래 표에 명시                                 |
+| 14   | 상태 관리 패턴       | 전역 STATE로 메뉴·테마·프로젝트·폼 상태를 관리하고 기능별 render 함수로 화면 갱신                                 |
 | 15   | 접근성               | `lang="ko"`, viewport, label/alt, 버튼 aria-label, 메뉴 aria-expanded, 동적 안내 aria-live. 키보드·스크린리더 실기 검증은 미실시                |
 
 ### 배열 메서드와 상태 관리의 구현 범위
 
-PDF의 ES6+ 요구사항에서 `map`, `forEach`를 사용하며, 특정 프로젝트만 표시하는 `filter`는 **선택**으로 명시되어 있습니다. 현재 코드에는 `navLinks.forEach`, `entries.forEach`, `revealElements.forEach`가 있습니다. 메뉴 이벤트 연결과 스크롤 애니메이션 관찰에 forEach를 활용했고, 선택 과제인 프로젝트 필터링은 구현 범위에서 제외했습니다.
-
-상태 관리는 테마, 메뉴, API, 폼에서 **이벤트 → 상태 변경 → 화면 업데이트** 흐름으로 구현했습니다. 테마는 dataset과 localStorage, 메뉴는 클래스, 폼 검증은 지역 변수로 관리하며, API는 요청과 응답의 처리 단계에 따라 화면을 갱신합니다. 전역 `STATE` 객체는 사용하지 않았으며, 각 상태의 표현 방식은 아래 표에 정리했습니다.
+프로젝트에는 map·forEach뿐 아니라 언어별 선택 표시를 위한 filter를 사용합니다. 기능별 상태는 전역 STATE 객체에서 관리하고, 이벤트 핸들러가 상태를 바꾼 뒤 대응하는 render 함수를 호출합니다. 프로젝트 필터 선택은 이미 받아온 데이터를 사용하므로 추가 API 요청이 발생하지 않습니다.
 
 ## 6. 화면 구조와 레이아웃 설계
 
@@ -208,69 +165,70 @@ Flexbox는 행 또는 열의 한 방향으로 요소를 배치하고 정렬하�
 
 프로젝트 카드는 별도 기기 구분 없이 Grid의 가용 너비에 따라 열 수가 바뀝니다. 위 표는 코드 분석 결과이며 모든 너비에서의 브라우저 검증 완료를 뜻하지 않습니다.
 
-## 7. 주요 인터랙션과 상태 흐름
+## 7. STATE 기반 상태 관리와 화면 갱신
 
-| 기능            | 이벤트·조건                        | 상태 표현                                      | 화면 업데이트                                    |
-| --------------- | ---------------------------------- | ---------------------------------------------- | ------------------------------------------------ |
-| 메뉴            | 햄버거 클릭                        | 메뉴의 `active` 클래스                         | 메뉴 표시/숨김, 버튼 문자와 `aria-expanded` 갱신 |
-| 메뉴 닫기       | 메뉴 링크 클릭                     | `active` 제거                                  | 메뉴 닫기, 버튼을 ☰로 복원                       |
-| 테마            | 테마 버튼 클릭                     | `documentElement.dataset.theme`와 localStorage | CSS 변수 변경, 버튼 Light/Dark 갱신              |
-| 헤더            | 스크롤 60px 이상                   | `scrolled` 클래스                              | 헤더 그림자 추가                                 |
-| 맨 위로         | 스크롤 300px 이상                  | 버튼의 `visible` 클래스                        | 버튼 표시. 클릭하면 top: 0으로 부드럽게 이동     |
-| 등장 애니메이션 | IntersectionObserver threshold 0.2 | 섹션의 `visible` 클래스                        | opacity·translateY 전환                          |
-| API             | 페이지 로드·재시도                 | 요청 진행 단계와 응답 결과                     | 로딩 안내 → 카드·빈 목록 안내·오류 안내 중 하나  |
-| 폼              | 제출                               | 지역 변수 `isValid`                            | 필드별 오류 또는 성공 메시지 표시                |
-| 입력 수정       | input                              | 해당 필드의 오류 텍스트 초기화                 | 오류·기존 성공 메시지 숨김                       |
+### 중앙 상태 구조
 
-### 다크 모드 전환과 초기 테마 결정
+```javascript
+const STATE = {
+  theme: savedTheme === 'dark' ? 'dark' : 'light',
+  menuOpen: false,
+  scrollPosition: window.scrollY,
+  projects: { status: 'idle', repositories: [], language: 'all', error: '' },
+  form: { errors: { name: '', email: '', message: '' }, success: false },
+};
+```
 
-테마 버튼을 클릭하면 현재 `data-theme` 값을 읽고 다음 값을 light 또는 dark로 결정합니다. 이 값을 루트 요소에 적용하면 CSS의 `[data-theme="dark"]` 선택자가 해당 색상 변수를 덮어씁니다. 각 요소의 색상을 JavaScript에서 하나씩 수정하지 않고 공통 변수 변경으로 화면 테마를 바꾸는 구조입니다.
+STATE를 화면 상태의 기준으로 사용합니다. dataset과 클래스는 상태를 별도로 결정하는 저장소가 아니라 STATE를 화면에 반영한 결과입니다. const는 객체 참조 재대입을 막으며 내부 속성 변경은 가능합니다. 프레임워크나 자동 반응 시스템은 없으므로 상태를 변경한 뒤 render 함수를 명시적으로 호출합니다.
 
-localStorage는 브라우저에서 출처별로 문자열 데이터를 저장하는 기능입니다. 테마는 `theme` 키로 저장하며, 일반적으로 새로고침하거나 브라우저를 다시 열어도 남아 있습니다. 사용자가 사이트 데이터를 삭제하면 저장값도 사라집니다.
+| 기능 | 이벤트·상태 변경 | 렌더 함수와 결과 |
+| --- | --- | --- |
+| 메뉴 | click → menuOpen 반전 | renderMenu → active, aria-expanded, 버튼 문구 |
+| 테마 | click → theme 변경·localStorage 저장 | renderTheme → data-theme·버튼 안내 |
+| 스크롤 | scroll → scrollPosition 저장 | renderScroll → 헤더 60px·맨 위로 버튼 300px 기준 클래스 |
+| API | 요청 → loading → success/empty/error | renderProjects → 로딩·카드·빈 목록·오류·재시도 |
+| 필터 | 언어 버튼 click → projects.language 변경 | renderProjects → filter 결과 카드·선택 버튼 aria-pressed |
+| 폼 | submit → errors·success 계산 | renderForm → 필드 오류·성공 안내·aria-invalid |
+| 입력 수정 | input → 해당 errors와 success 초기화 | renderForm → 안내 갱신 |
 
-1. `localStorage.getItem("theme")`으로 이전 선택을 읽습니다.
-2. 저장값이 있으면 `data-theme`에 적용합니다.
-3. 저장값이 없으면 `data-theme`를 설정하지 않으므로 `:root`의 **밝은 테마**가 적용됩니다.
-4. 현재 테마가 dark이면 버튼에 Light, 그 외에는 Dark를 표시합니다.
-5. 클릭 시 다음 테마를 dataset과 localStorage에 저장합니다. 새로고침하면 1번부터 복원합니다.
+### 다크 모드와 저장·복원
 
-시스템 테마 감지는 보너스 범위여서 구현하지 않았습니다.
+버튼 클릭 시 STATE.theme을 light 또는 dark로 전환하고 localStorage의 theme 키에 저장한 후 renderTheme을 호출합니다. renderTheme은 루트 DOM의 data-theme을 바꾸고, CSS의 테마 변수가 화면 색상을 변경합니다. 새로고침하면 localStorage 값을 읽어 STATE의 초기값으로 사용합니다. 저장된 값이 dark가 아니면 기본 밝은 테마입니다.
 
-### 프로젝트 API 상태 모델
+localStorage는 출처별로 문자열을 저장하며 일반적으로 브라우저를 닫아도 유지됩니다. 사용자가 사이트 데이터를 삭제하면 테마 저장값도 없어집니다. 시스템 테마 감지는 구현하지 않았습니다.
 
-별도의 상태 객체를 생성하지 않고 `loadProjects`의 실행 흐름에서 상태를 구분합니다.
+### API 상태 전환과 수동 재시도
 
 ```text
 loadProjects 호출
-  → 로딩 안내 표시 + 기존 카드 비우기
-  → fetch 요청
-      → HTTP 성공 + 목록 있음: map → HTML 생성 → 카드 표시
-      → HTTP 성공 + 목록 없음: 빈 목록 안내
-      → HTTP 실패 또는 요청 예외: catch → 오류 안내 + 재시도 버튼 생성
+  → STATE.projects.status = loading → renderProjects
+  → fetch + HTTP 상태 확인 + JSON 변환
+      → 배열 있음: repositories 저장, language = all, status = success
+      → 빈 배열: repositories 저장, language = all, status = empty
+      → 실패: status = error, error 안내 저장
+  → renderProjects
 ```
 
+오류 화면의 다시 시도 버튼은 loadProjects를 호출합니다. 성공 응답을 받으면 필터는 전체로 초기화합니다. 로딩·오류 동안 필터와 카드를 숨겨 이전 데이터를 현재 결과로 오해하지 않도록 합니다. 상태 문자열과 데이터가 STATE에 실제 저장되므로 개발자 도구에서 처리 단계를 추적할 수 있습니다.
+
 - 엔드포인트: `https://api.github.com/users/L-jy16/repos`
-- 카드 데이터: `name`, `description`, `html_url`, `language`, `stargazers_count`를 구조분해 할당합니다.
-- 설명·언어가 null이면 `??`로 대체 문구를 표시합니다.
-- 로딩 문구: “프로젝트를 불러오는 중...”
-- 빈 목록 문구: “표시할 프로젝트가 없습니다.”
-- 오류 문구: “프로젝트를 불러올 수 없습니다.”와 “다시 시도” 버튼
-- HTTP 오류는 상태 코드를 포함한 Error를 만들고 콘솔에 기록합니다. 사용자 문구는 오류 유형별로 구분하지 않습니다.
-- 자동 재시도와 요청 타임아웃은 구현하지 않았습니다. 수동 재시도 연결에는 아래에 적은 오류가 있습니다.
+- 로딩: “프로젝트를 불러오는 중...”
+- 빈 목록: “표시할 프로젝트가 없습니다.”
+- 실패: 네트워크 연결·API 이용 제한 확인 안내와 재시도 버튼
+- 선택 결과 없음: “선택한 언어의 프로젝트가 없습니다.”
+- 자동 재시도·타임아웃·페이지네이션은 구현하지 않았습니다. 현재 응답이 계정의 모든 저장소라고 보장하지 않습니다.
 
-### 폼 검증과 접근성 범위
+### 언어 필터 UI와 키보드 동작
 
-폼을 제출하면 브라우저는 기본적으로 제출 동작을 수행합니다. `preventDefault()`는 이를 막아 현재 페이지에서 입력값 검증과 결과 표시를 처리할 수 있게 합니다. 이벤트가 상위 요소로 전달되는 전파를 막는 기능과는 다릅니다.
+저장소의 언어를 Set으로 중복 제거하여 전체·언어별·언어 미지정 버튼을 생성합니다. 버튼 클릭 시 STATE.projects.language를 바꾸고 renderProjects를 호출합니다. renderProjectFilters는 선택 여부를 aria-pressed에 반영하고, 재생성 후 선택 버튼으로 포커스를 복원합니다. 원본 repositories는 유지하므로 전체 버튼으로 되돌아갈 수 있습니다.
 
-`novalidate`로 브라우저 기본 검증 대신 JavaScript 검증을 사용하고 `event.preventDefault()`로 기본 제출을 막습니다. `trim()`으로 공백을 제거한 후 이름·이메일·메시지의 빈값과 이메일 형식을 확인합니다. `clearErrors`로 이전 안내를 지운 뒤 필드 가까이에 오류를 표시하며, 입력 수정 시 해당 오류를 지웁니다.
+### 폼과 접근성
 
-각 필드는 label과 for-id로 연결되어 있습니다. 성공 안내와 프로젝트 상태 영역에는 `aria-live="polite"`, 메뉴 버튼에는 `aria-expanded`가 있습니다. 오류 필드로 자동 포커스 이동, `aria-invalid`, 오류 문구와의 `aria-describedby` 연결은 구현하지 않았습니다. 실제 이메일 전송 없이 검증 결과만 표시합니다.
+label의 for-id 연결, 프로필 alt, 문서 lang, 메뉴 aria-expanded, 동적 안내 aria-live를 사용합니다. renderForm은 오류에 따라 aria-invalid를 설정하고 aria-describedby로 오류 문구를 연결합니다. 폼 실패 시 첫 오류 필드로 포커스를 옮깁니다. 실제 스크린리더 테스트는 아직 실시하지 않았습니다.
 
-### 스크롤 감지와 등장 애니메이션
+### 스크롤 애니메이션
 
-IntersectionObserver는 관찰 대상과 화면 등의 기준 영역이 교차하는 상태를 비동기로 알려주는 API입니다. 스크롤할 때마다 모든 섹션의 위치를 직접 계산하는 대신 관찰 콜백에서 `visible` 클래스를 추가하고, CSS가 투명도와 위치를 전환하도록 했습니다.
-
-현재 `threshold`는 0.2이고 콜백에서는 `isIntersecting`을 확인합니다. threshold는 관찰 콜백의 교차 비율 기준이며, 현재 코드가 `intersectionRatio >= 0.2`를 별도로 검사하는 것은 아닙니다. 따라서 “항상 20% 이상 보일 때만 실행한다”라고 설명하지 않습니다. 추가된 `visible` 클래스는 제거하지 않아 등장한 섹션은 표시 상태를 유지합니다.
+IntersectionObserver가 섹션의 화면 교차 상태를 알리면 visible 클래스를 추가하고 CSS가 opacity·translateY를 전환합니다. threshold는 0.2이고 콜백은 isIntersecting을 확인합니다. intersectionRatio가 0.2 이상인지를 별도로 검사하는 것은 아닙니다. 한 번 표시된 섹션의 visible 클래스는 제거하지 않습니다.
 
 ## 8. CSS 변수와 유지보수
 
@@ -299,32 +257,31 @@ body {
 
 - HTML/CSS/JS의 파일 연결, 미디어쿼리, 이벤트·상태 분기는 소스를 확인했습니다.
 - 기존 데스크톱·모바일 다크 모드 캡처는 아래에 첨부했습니다. 캡처만으로 모든 화면과 인터랙션의 정상 동작을 증명하지는 않습니다.
-- DOM 대역을 사용한 JavaScript 실행 검사에서 HTTP 403 실패 분기와 정상 폼 제출 분기의 오류를 재현했습니다. 실제 브라우저·배포본 전체 테스트는 아닙니다.
+- DOM 대역을 사용한 실행 검사에서 STATE의 테마·메뉴 전환, 언어별 필터·전체 복원·언어 미지정·조건에 맞는 결과 없음, 필터 클릭 시 추가 API 요청 없음, API 실패·재시도·빈 응답, 폼 검증·오류 포커스·정상 제출 후 초기화를 확인했습니다. 실제 브라우저·배포본 전체 테스트는 아닙니다.
 - GitHub Pages 배포는 완료했습니다. 현재 로컬 파일과 배포본의 동일 여부 및 배포본 전체 동작은 별도 확인이 필요합니다.
 
-### 알려진 구현 문제
+### 남은 구현 보완 사항
 
-1. `main.js`의 API catch 내부에 남은 `ㄴ;`이 `ReferenceError`를 발생시킵니다. 오류 메시지와 버튼은 생성되지만 클릭 핸들러 연결 전에 중단되어 재시도가 동작하지 않습니다.
-2. 폼 정상 제출 분기의 `ㄴ;`도 `ReferenceError`를 발생시킵니다. 성공 메시지는 표시되지만 이후 `contactForm.reset()`은 실행되지 않습니다.
-3. 60px 이상 스크롤 시 헤더는 그림자만 바뀝니다. PDF에서 요구하는 배경색 변경은 반영되지 않았습니다.
-4. CSS 폰트 변수는 없고, 간격 변수는 선언만 되어 있습니다.
+1. 60px 이상 스크롤 시 헤더는 그림자만 바뀝니다. PDF에서 요구하는 배경색 변경은 반영되지 않았습니다.
+2. CSS 폰트 변수는 없고, 간격 변수는 선언만 되어 있습니다.
 
-위 문제는 문서 수정으로 해결되는 사항이 아니며 현재 코드의 한계로 명시합니다.
+위 항목은 현재 코드의 보완 사항입니다. API 재시도와 폼 초기화를 중단시키던 불필요한 문자는 제거했습니다.
 
 ### 브라우저 검증 체크리스트 — 아직 완료 처리하지 않은 항목
 
 아래는 평가자가 재현할 수 있는 절차입니다. 체크되지 않은 항목은 통과 결과를 기록한 것이 아닙니다.
 
 - [ ] Chrome에서 375px, 767px, 768px, 1023px, 1024px, 1440px 너비로 확인: 가로 넘침·텍스트 겹침·메뉴 전환·카드 배치 확인
+- [ ] 언어 필터 클릭 → 해당 언어 카드만 표시 → 전체로 복원, 키보드 포커스 유지 확인
 - [ ] 모바일 메뉴 열기 → 다시 클릭해서 닫기 → 링크를 눌러 이동하며 닫히는지 확인
 - [ ] 테마 저장값 제거 후 밝은 테마 시작 → 다크 전환 → 새로고침 유지 확인
 - [ ] 스크롤 59/60px에서 헤더 변화, 299/300px에서 맨 위로 버튼 표시 조건 확인
 - [ ] 내비게이션 앵커와 맨 위로 버튼의 부드러운 이동 확인
 - [ ] 섹션 스크롤 시 등장 애니메이션 확인
 - [ ] API 정상 응답·빈 배열·403·네트워크 실패를 각각 재현하여 안내와 카드 확인
-- [ ] 알려진 오류 수정 후 API 실패 → 재시도 → 성공 흐름 확인
+- [ ] 실제 브라우저에서 API 실패 → 재시도 → 성공 흐름 확인
 - [ ] 빈 폼·잘못된 이메일·정상 입력 제출 및 입력 수정 시 오류 해제 확인
-- [ ] 알려진 오류 수정 후 정상 제출 시 폼 초기화 확인
+- [ ] 실제 브라우저에서 정상 제출 시 폼 초기화 확인
 - [ ] Tab/Shift+Tab 이동 순서, 포커스 표시, Enter/Space 버튼 조작 확인
 - [ ] 스크린리더로 label·메뉴 펼침 상태·동적 안내 읽기 확인
 - [ ] GitHub Pages에서 CSS·JS·프로필 이미지·스크린샷 경로와 콘솔 오류 확인
