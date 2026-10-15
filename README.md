@@ -9,6 +9,9 @@ React 등의 프레임워크를 사용하지 않고
 DOM 조작, 이벤트 처리, 상태 변경,
 비동기 API 통신을 직접 구현했습니다.
 
+- [배포 사이트](https://l-jy16.github.io/aboutme/)
+- [GitHub 저장소](https://github.com/L-jy16/aboutme)
+
 ## 프로젝트 목표
 
 이번 프로젝트에서는 다음과 같은
@@ -66,6 +69,8 @@ Scroll Top 버튼이 표시됩니다.
 버튼을 클릭하면 페이지 맨 위로
 부드럽게 이동합니다.
 
+네비게이션 메뉴의 앵커 링크를 클릭할 때도 해당 섹션으로 부드럽게 이동합니다.
+
 ### Navigation 스타일 변경
 
 60px 이상 스크롤하면
@@ -117,39 +122,43 @@ API 요청 실패 시
 
 ## 폴더 구조
 
-portfolio/
-
-- index.html
-- css/
-  - style.css
-- js/
-  - main.js
-- images/
-  - profile.jpg
-- README.md
+```text
+aboutme/
+├── index.html
+├── css/
+│   └── style.css
+├── js/
+│   └── main.js
+├── images/
+│   ├── me.png
+│   ├── desktop.png
+│   └── mobile.png
+└── README.md
+```
 
 ## 실행 방법
 
-VS Code에서 프로젝트 폴더를 실행합니다.
+1. 프로젝트를 내려받아 VS Code에서 폴더를 엽니다.
+2. VS Code에 Live Server 확장 프로그램을 설치합니다.
+3. `index.html`을 마우스 오른쪽 버튼으로 클릭하고 **Open with Live Server**를 선택합니다.
 
-index.html 파일을 Live Server로 실행합니다.
+GitHub 저장소 목록을 불러오려면 인터넷 연결이 필요합니다.
 
 ## 배포
 
-GitHub Pages
+GitHub Pages로 배포했습니다.
 
-배포 URL: https://l-jy16.github.io/aboutme/
+- 배포 URL: [https://l-jy16.github.io/aboutme/](https://l-jy16.github.io/aboutme/)
+- 저장소 URL: [https://github.com/L-jy16/aboutme](https://github.com/L-jy16/aboutme)
 
 ## Screenshots
 
 ### Desktop
 
-![메뉴 정상 출력](./images/desktop.png)
+![데스크톱 화면의 포트폴리오](./images/desktop.png)
 
-### Mobile
+### Mobile / Dark Mode
 
-![메뉴 정상 출력](./images/mobile.png)
+모바일 화면에서 다크 모드를 적용한 모습입니다.
 
-### Dark Mode
-
-![메뉴 정상 출력](./images/mobile.png)
+![모바일 화면의 다크 모드 포트폴리오](./images/mobile.png)

@@ -60,11 +60,6 @@ menuButton.addEventListener("click", () => {
   menuButton.textContent = isOpen ? "✕" : "☰";
 });
 
-/*
-  메뉴의 링크를 클릭하면
-  모바일 메뉴를 닫습니다.
-*/
-
 navLinks.forEach((link) => {
   link.addEventListener("click", () => {
     navMenu.classList.remove("active");
